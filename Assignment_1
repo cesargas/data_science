@@ -48,20 +48,26 @@ p2 = sub2['co2emissions'].value_counts(sort=True, normalize=False)
 print (p2)
 
 print ('2008 urban population (% of total) Urban population refers to people living in urban areas')
-p3 = sub2['urbanrate'].value_counts(sort=True, normalize=True)
+p3 = sub2['urbanrate'].value_counts(sort=True, normalize=False)
 print (p3)
 
 ##### Try to undestand deeper the data, due to my varible of interest are ordinal not cathegorical
-##### I have chop into quartiles, ocurrence intervals to 25%, 50%, 75% 100%
+##### I have chop into quartiles, ocurrence intervals to 25%, 50%, 75% 100% for every variable of interest
+##### First breastcancerper100th
 #factor1=pandas.qcut(sub2['breastcancerper100th'], [0, .25, .5, .75, 1.])
 factor1=pandas.qcut(sub2['breastcancerper100th'], 4)
-#print(factor1)
 dsubf1=sub2.groupby(factor1).size()
 print (dsubf1)
+##### Using Quartiles I can get % distribution to confirm the uniform ditribution between intervals
 factor11 =sub2.groupby(factor1).size() *100 / len(sub2)
 print (factor11)
+##### Using Quartiles I can summarize per interval to obtain an idea of distribution based in breastcancerper100th intervals
+sumf1=sub2.groupby(factor1).sum()
+print (sumf1)
+sumf11=sub2.groupby(factor1).mean()
+print (sumf11)
 
-
+##### Second co2emission
 #factor2=pandas.qcut(sub2['co2emissions'], [0, .25, .5, .75, 1.])
 factor2=pandas.qcut(sub2['co2emissions'], 4)
 #print(factor2)
@@ -69,7 +75,13 @@ dsubf2=sub2.groupby(factor2).size()
 print (dsubf2)
 factor22 =sub2.groupby(factor2).size() *100 / len(sub2)
 print (factor22)
+##### Using Quartiles I can summarize per interval to obtain an idea of distribution, but this time with co2emission intervals
+sumf2=sub2.groupby(factor2).sum()
+print (sumf2)
+sumf22=sub2.groupby(factor2).mean()
+print (sumf22)
 
+##### Third urbanrate
 #factor3=pandas.qcut(sub2['urbanrate'], [0, .25, .5, .75, 1.])
 factor3=pandas.qcut(sub2['urbanrate'], 4)
 #print(factor3)
@@ -77,7 +89,9 @@ dsubf3=sub2.groupby(factor3).size()
 print (dsubf3)
 factor33 =sub2.groupby(factor3).size() *100 / len(sub2)
 print (factor33)
-
+##### In this particual case It has no sense to summariza because the variable is a % I have used mean 
+sumf3=sub2.groupby(factor3).mean()
+print (sumf3)
 
 ###Some statistical information about variables of interest
 sub2.describe()
