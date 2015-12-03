@@ -1,0 +1,86 @@
+# -*- coding: utf-8 -*-
+"""
+Created on 3/12/15
+@author: César Alonso
+"""
+import pandas
+import numpy
+gapminder = pandas.read_csv("/home/cesar/Enlace hacia Data Visualization/Python_projects/gapminder.csv", low_memory=False)
+
+##### lowercase all DataFrame columns names
+gapminder.columns = map(str.lower,gapminder.columns)
+
+##### bug file for display formats to avoid run time errors
+pandas.set_option('display.float_format', lambda x:'%f'%x)
+
+##### Initial data: 213 rows and 16 Columns
+print(len(gapminder)) #number of observations (rows)
+print(len(gapminder.columns)) # number of variables (columns)
+
+##### Eliminate rows with null values in variables of interest
+sub1=gapminder[(gapminder['breastcancerper100th']!=" ") & (gapminder['co2emissions']!=" ") & (gapminder['urbanrate']!=" ")]
+
+##### Eliminate columns we do not need, I have just kept hte country and the variables of interest
+sub1 = sub1[['country','breastcancerper100th','co2emissions','urbanrate']]
+sub2=sub1.copy()
+
+##### We kept 168 rows and 4 columns
+print(len(sub2)) #number of observations (rows)
+print(len(sub2.columns))
+
+##### setting variables I will be working with to numeric
+sub2['breastcancerper100th'] = sub2['breastcancerper100th'].convert_objects(convert_numeric=True)
+sub2['co2emissions'] = sub2['co2emissions'].convert_objects(convert_numeric=True)
+sub2['urbanrate'] = sub2['urbanrate'].convert_objects(convert_numeric=True)
+
+##### Subset used for variables of interest analysis
+print(sub2)
+
+################################################################################
+###########################frequency tables#####################################
+##### Number of new cases of breast cancer in 100,000 female residents sort by number of ocurrence
+print ('Number of new cases of breast cancer in 100,000 female residents')
+p1 = sub2['breastcancerper100th'].value_counts(sort=True, normalize=False)
+print (p1)
+
+print ('2006 cumulative CO2 emission (metric tons), Total amount of CO2 emission in metric tons since 1751')
+p2 = sub2['co2emissions'].value_counts(sort=True, normalize=False)
+print (p2)
+
+print ('2008 urban population (% of total) Urban population refers to people living in urban areas')
+p3 = sub2['urbanrate'].value_counts(sort=True, normalize=True)
+print (p3)
+
+##### Try to undestand deeper the data, due to my varible of interest are ordinal not cathegorical
+##### I have chop into quartiles, ocurrence intervals to 25%, 50%, 75% 100%
+#factor1=pandas.qcut(sub2['breastcancerper100th'], [0, .25, .5, .75, 1.])
+factor1=pandas.qcut(sub2['breastcancerper100th'], 4)
+#print(factor1)
+dsubf1=sub2.groupby(factor1).size()
+print (dsubf1)
+factor11 =sub2.groupby(factor1).size() *100 / len(sub2)
+print (factor11)
+
+
+#factor2=pandas.qcut(sub2['co2emissions'], [0, .25, .5, .75, 1.])
+factor2=pandas.qcut(sub2['co2emissions'], 4)
+#print(factor2)
+dsubf2=sub2.groupby(factor2).size()
+print (dsubf2)
+factor22 =sub2.groupby(factor2).size() *100 / len(sub2)
+print (factor22)
+
+#factor3=pandas.qcut(sub2['urbanrate'], [0, .25, .5, .75, 1.])
+factor3=pandas.qcut(sub2['urbanrate'], 4)
+#print(factor3)
+dsubf3=sub2.groupby(factor3).size()
+print (dsubf3)
+factor33 =sub2.groupby(factor3).size() *100 / len(sub2)
+print (factor33)
+
+
+###Some statistical information about variables of interest
+sub2.describe()
+sub2['breastcancerper100th'].describe()
+sub2['co2emissions'].describe()
+sub2['urbanrate'].describe()
