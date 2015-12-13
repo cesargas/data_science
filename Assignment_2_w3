@@ -25,7 +25,7 @@ print(len(gapminder.columns)) # number of variables (columns)
 sub1 = gapminder[['country','breastcancerper100th','co2emissions','urbanrate']]
 sub2=sub1.copy()
 
-##### We kept 213 rows and 4 columns. some nan will drop 
+##### We kept 213 rows and 4 columns. some nan will be drop 
 print(len(sub2)) #number of observations (rows)
 print(len(sub2.columns))
 
@@ -38,66 +38,61 @@ sub2['urbanrate'] = sub2['urbanrate'].convert_objects(convert_numeric=True)
 print(sub2)
 
 ################################################################################
-###########################frequency tables#####################################
-##### First Variable of Interest: breastcancerper100th
-factor1=pandas.qcut(sub2['breastcancerper100th'], 4)
-dsubf1=sub2.groupby(factor1).size()
-print (dsubf1)
-##### Using Quartiles I can get % distribution to confirm the uniform ditribution between intervals
-factor11 =sub2.groupby(factor1).size() *100 / len(sub2)
-print (factor11)
-##### Using Quartiles I can summarize per interval to obtain an idea of distribution based in breastcancerper100th intervals
-sumf1=sub2.groupby(factor1).sum()
-print (sumf1)
-sumf11=sub2.groupby(factor1).mean()
-print (sumf11)
+###########################frequency tables with nan #####################################
 
-#### 4 groups
+p1 = sub2['breastcancerper100th'].value_counts(sort=True, normalize=False,dropna=False)
+p10 = sub2['breastcancerper100th'].isnull().value_counts()
+print (p10)
+
+p2 = sub2['co2emissions'].value_counts(sort=True, normalize=False,dropna=False)
+p20 = sub2['co2emissions'].isnull().value_counts()
+print (p20)
+
+p3 = sub2['urbanrate'].value_counts(sort=True, normalize=False,dropna=False)
+p30 = sub2['urbanrate'].isnull().value_counts()
+print (p30)
+
+print ('Number of new cases of breast cancer in 100,000 female residents')
+print (p1.head(1))
+print ('2006 cumulative CO2 emission (metric tons), Total amount of CO2 emission in metric tons since 1751')
+print (p2.head(1))
+print ('2008 urban population (% of total) Urban population refers to people living in urban areas')
+print (p3.head(1))
+
+#########################################################################################
+##### First Variable of Interest: breastcancerper100th
+#### 4 bins for breastcancerper100th
 sub2['BC100_GRP']=pandas.cut(sub2.breastcancerper100th, [1, 25, 50, 75, 102])
 c1=sub2['BC100_GRP'].value_counts(sort=False, dropna=True)
-print("Breat Cancer Groups 100th ocurrence")
+c11=sub2['BC100_GRP'].groupby(sub2['BC100_GRP']).size() *100 / len(sub2)      
+print("Breat Cancer 100th ocurrence 4 Bins: (1, 25] (25, 50] (50, 75] (75, 102]")
 print(c1)
-
+print(c11)
 
 ##### Second Variable of Interest: co2emission
-factor2=pandas.qcut(sub2['co2emissions'], 4)
-dsubf2=sub2.groupby(factor2).size()
-print (dsubf2)
-factor22 =sub2.groupby(factor2).size() *100 / len(sub2)
-print (factor22)
-##### Using Quartiles I can summarize per interval to obtain an idea of distribution, but this time with co2emission intervals
-sumf2=sub2.groupby(factor2).sum()
-print (sumf2)
-sumf22=sub2.groupby(factor2).mean()
-print (sumf22)
-
 ##### 3 groups
 sub2['CO2E_GRP']=pandas.cut(sub2.co2emissions, [2000000, 500000000,5000000000,350000000000],labels= ['(0, 0.5]','(0.5, 5]','(5, 350]'])
-c2=sub2['CO2E_GRP'].value_counts(sort=False, dropna=True)          
-print("CO2 emissions groups (billions of Tm):")                                                                      
+c2=sub2['CO2E_GRP'].value_counts(sort=False, dropna=True)  
+c22=sub2['CO2E_GRP'].groupby(sub2['CO2E_GRP']).size() *100 / len(sub2)        
+print("CO2 emissions groups (billions of Tm) bins (0, 0.5] (0.5, 5] (5, 350]:")                                                                      
 print(c2)
-
+print(c22)
 
 ##### crosstabs evaluating which BREAST CANCER 100TH OCURRENCE groups were put into CO2 EMISSION GROUPS
 print("Breat Cancer Groups 100th ocurrence x CO2 emissions groups (billions of Tm):")
 print (pandas.crosstab(sub2['BC100_GRP'], sub2['CO2E_GRP']))
+print(pandas.crosstab(sub2['BC100_GRP'], sub2['CO2E_GRP']).apply(lambda r: r/r.sum(), axis=1))
 
 ##### Third Variable of Interest: Urbanrate
-factor3=pandas.qcut(sub2['urbanrate'], 4)
-#print(factor3)
-dsubf3=sub2.groupby(factor3).size()
-print (dsubf3)
-factor33 =sub2.groupby(factor3).size() *100 / len(sub2)
-print (factor33)
-##### In this particual case It has no sense to summariza because the variable is a % I have used mean 
-sumf3=sub2.groupby(factor3).mean()
-print (sumf3)
-
 ##### 4 groups
 sub2['UR_GRP']=pandas.cut(sub2.urbanrate, [0, 25, 50, 75, 100])
-c3=sub2['UR_GRP'].value_counts(sort=False, dropna=True)            
-print("Urban Rate groups:")                                                                    
+c3=sub2['UR_GRP'].value_counts(sort=False, dropna=True)  
+c33=sub2['UR_GRP'].groupby(sub2['UR_GRP']).size() *100 / len(sub2)
+print("Urban Rate bins:")                                                                    
 print(c3)
+print(c33)
 
 #crosstabs evaluating which BREAST CANCER 100TH OCURRENCE groups were put into URBAN RATE GROUPS
+print("Breast Cancer 100th ocurrence x urban rate (billions of Tm):")
 print (pandas.crosstab(sub2['BC100_GRP'], sub2['UR_GRP']))
+print(pandas.crosstab(sub2['BC100_GRP'], sub2['UR_GRP']).apply(lambda r: r/r.sum(), axis=1))
