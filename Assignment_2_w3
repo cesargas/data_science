@@ -18,7 +18,9 @@ gapminder.columns = map(str.lower,gapminder.columns)
 pandas.set_option('display.float_format', lambda x:'%f'%x)
 
 ##### Initial data: 213 rows and 16 Columns
+print ('Rows')
 print(len(gapminder)) #number of observations (rows)
+print ('Columns')
 print(len(gapminder.columns)) # number of variables (columns)
 
 ##### Eliminate columns we do not need, I have just kept hte country and the variables of interest
@@ -26,7 +28,9 @@ sub1 = gapminder[['country','breastcancerper100th','co2emissions','urbanrate']]
 sub2=sub1.copy()
 
 ##### We kept 213 rows and 4 columns. some nan will be drop 
+print ('Rows')
 print(len(sub2)) #number of observations (rows)
+print ('Columns')
 print(len(sub2.columns))
 
 ##### setting variables I will be working with to numeric
@@ -35,22 +39,22 @@ sub2['co2emissions'] = sub2['co2emissions'].convert_objects(convert_numeric=True
 sub2['urbanrate'] = sub2['urbanrate'].convert_objects(convert_numeric=True)
 
 ##### Subset used for variables of interest analysis
-print(sub2)
+#print(sub2)
 
 ################################################################################
 ###########################frequency tables with nan #####################################
 
 p1 = sub2['breastcancerper100th'].value_counts(sort=True, normalize=False,dropna=False)
 p10 = sub2['breastcancerper100th'].isnull().value_counts()
-print (p10)
+#print (p10)
 
 p2 = sub2['co2emissions'].value_counts(sort=True, normalize=False,dropna=False)
 p20 = sub2['co2emissions'].isnull().value_counts()
-print (p20)
+#print (p20)
 
 p3 = sub2['urbanrate'].value_counts(sort=True, normalize=False,dropna=False)
 p30 = sub2['urbanrate'].isnull().value_counts()
-print (p30)
+#print (p30)
 
 print ('Number of new cases of breast cancer in 100,000 female residents')
 print (p1.head(1))
