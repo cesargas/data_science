@@ -90,7 +90,7 @@ c22=sub2['CO2E_GRP'].groupby(sub2['CO2E_GRP']).size() *100 / len(sub2)
 print("CO2 emissions groups (billions of Tm) bins (0, 0.5] (0.5, 5] (5, 50] (5, 335]:")                                                                      
 print(c2)
 print(c22)
-##### Univariate Graph: 2 Variable of interest Breast Cancer 
+##### Univariate Graph: 2 Variable of interest CO2 Emission
 seaborn.countplot(x='CO2E_GRP', data=sub2)
 plt.xlabel('CO2 emissions Bins (billions of mT)')
 plt.title('CO2 emissions (billions of mT)')
@@ -133,6 +133,7 @@ print("Urban Rate bins:")
 print(c3)
 print(c33)
 
+##### Univariate Graph: 3 Variable of interest Urban Rate
 seaborn.distplot(sub2['urbanrate'].dropna(), kde=False);
 plt.xlabel('Urban Rate')
 plt.title('Urban Rate')
@@ -165,6 +166,7 @@ plt.xlabel('Urban Rate')
 plt.ylabel('Breast cancer per 100th')
 plt.title('Scatterplot for the Association Between Urban Rate and Breastcancerper100th')
 
+##### C-> Q Representation
 seaborn.factorplot(x='UR_GRP', y='breastcancerper100th', data=sub2, 
                    kind="box", ci=None)
 plt.xlabel('Urban Rate')
