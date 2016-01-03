@@ -63,6 +63,7 @@ results1 = model1.fit()
 print (results1.summary())
 
 ###### Tukey Post Hoc Test
+print (' Tukey Post Hoc Test for Explanatory Variable CO2 Emission Categorical, Response Variable cancerbreast Quantitative')
 mc1 = multi.MultiComparison(sub2['breastcancerper100th'], sub2['CO2E_GRP'])
 res1 = mc1.tukeyhsd()
 print(res1.summary())
@@ -75,7 +76,7 @@ results2 = model2.fit()
 print (results2.summary())
 
 ###### Tukey Post Hoc Test
-
+print (' Tukey Post Hoc Test for Explanatory Variable Urban Rate Categorical, Response Variable cancerbreast Quantitative')
 mc2 = multi.MultiComparison(sub2['breastcancerper100th'], sub2['UR_GRP'])
 res2 = mc2.tukeyhsd()
 print(res2.summary())
