@@ -1,0 +1,81 @@
+# -*- coding: utf-8 -*-
+"""
+Created on 3/1/16
+@author: César Alonso
+Data Analysis Tools
+Asignment W1
+
+"""
+import pandas
+import numpy
+import statsmodels.formula.api as smf
+import statsmodels.stats.multicomp as multi 
+
+gapminder = pandas.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
+#gapminder = pandas.read_csv('gapminder.csv', low_memory=False)
+
+##### lowercase all DataFrame columns names
+gapminder.columns = map(str.lower,gapminder.columns)
+
+##### bug file for display formats to avoid run time errors
+pandas.set_option('display.float_format', lambda x:'%f'%x)
+
+##### Initial data: 213 rows and 16 Columns
+print ('Rows')
+print(len(gapminder)) #number of observations (rows)
+print ('Columns')
+print(len(gapminder.columns)) # number of variables (columns)
+
+##### Eliminate columns we do not need, I have just kept hte country and the variables of interest
+
+gapminder['breastcancerper100th'] = gapminder['breastcancerper100th'].convert_objects(convert_numeric=True)
+gapminder['co2emissions'] = gapminder['co2emissions'].convert_objects(convert_numeric=True)
+gapminder['urbanrate'] = gapminder['urbanrate'].convert_objects(convert_numeric=True)
+
+sub1 = gapminder[['country','breastcancerper100th','co2emissions','urbanrate']].dropna()
+sub2=sub1.copy()
+##### We kept 168 rows and 4 columns. some nan will be drop 
+print ('Rows')
+print(len(sub2)) #number of observations (rows)
+print ('Columns')
+print(len(sub2.columns))
+
+d1=sub2['breastcancerper100th'].describe()
+print (d1)
+
+#########################################################################################
+##### First Variable of Interest: breastcancerper100th keep Quantitative
+
+##### Second Variable of Interest: co2emission convert to CATEGORICAL
+##### 4 bins I choose to convert to Categorical
+sub2['CO2E_GRP']=pandas.cut(sub2.co2emissions, [2000000, 500000000,5000000000,50000000000,335000000000],labels= ['(0, 0.5]','(0.5, 5]','(5, 50]','(50, 335]'])
+
+##### Third Variable of Interest: Urbanrate convert to CATEGORICAL
+##### 4 bins
+sub2['UR_GRP']=pandas.cut(sub2.urbanrate, [0, 25, 50, 75, 100])
+
+######## using ols function for calculating the F-statistic and associated p value 
+###### Explanatory Variable CO2E_GRP Categorical, Response Variable cancerbreast Quantitative
+
+print (' F-statistic and associated p value for Explanatory Variable CO2 Emission Categorical, Response Variable cancerbreast Quantitative')
+model1 = smf.ols(formula='breastcancerper100th ~ C(CO2E_GRP)', data=sub2)
+results1 = model1.fit()
+print (results1.summary())
+
+###### Tukey Post Hoc Test
+mc1 = multi.MultiComparison(sub2['breastcancerper100th'], sub2['CO2E_GRP'])
+res1 = mc1.tukeyhsd()
+print(res1.summary())
+
+###### Explanatory Variable UR_GRP Categorical, Response Variable cancerbreast Quantitative
+print('F-statistic and associated p value for Explanatory Variable Urban Rate Categorical, Response Variable cancerbreast Quantitative')
+
+model2 = smf.ols(formula='breastcancerper100th ~ C(UR_GRP)', data=sub2)
+results2 = model2.fit()
+print (results2.summary())
+
+###### Tukey Post Hoc Test
+
+mc2 = multi.MultiComparison(sub2['breastcancerper100th'], sub2['UR_GRP'])
+res2 = mc2.tukeyhsd()
+print(res2.summary())
