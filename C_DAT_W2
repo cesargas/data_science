@@ -1,0 +1,305 @@
+# -*- coding: utf-8 -*-
+"""
+Created on 8/1/2016
+@author: César Alonso
+data analysis tools
+Asignment  W2
+
+"""
+import pandas
+import numpy
+import seaborn
+import matplotlib.pyplot as plt
+
+gapminder = pandas.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
+##### lowercase all DataFrame columns names
+gapminder.columns = map(str.lower,gapminder.columns)
+
+##### bug file for display formats to avoid run time errors
+pandas.set_option('display.float_format', lambda x:'%f'%x)
+
+##### Initial data: 213 rows and 16 Columns
+print ('Rows')
+print(len(gapminder)) #number of observations (rows)
+print ('Columns')
+print(len(gapminder.columns)) # number of variables (columns)
+
+##### Eliminate columns we do not need, I have just kept hte country and the variables of interest
+
+gapminder['breastcancerper100th'] = gapminder['breastcancerper100th'].convert_objects(convert_numeric=True)
+gapminder['co2emissions'] = gapminder['co2emissions'].convert_objects(convert_numeric=True)
+gapminder['urbanrate'] = gapminder['urbanrate'].convert_objects(convert_numeric=True)
+
+sub1 = gapminder[['country','breastcancerper100th','co2emissions','urbanrate']].dropna()
+sub2=sub1.copy()
+##### We kept 168 rows and 4 columns. some nan will be drop 
+print ('Rows')
+print(len(sub2)) #number of observations (rows)
+print ('Columns')
+print(len(sub2.columns))
+
+d1=sub2['breastcancerper100th'].describe()
+print (d1)
+
+#########################################################################################
+##### First Variable of Interest: breastcancerper100th 
+#### 4 bins for breastcancerper100th
+
+sub2['BC100_GRP']=pandas.cut(sub2.breastcancerper100th, [1, 25, 50, 75, 102])
+
+##### Second Variable of Interest: co2emission convert to CATEGORICAL
+
+sub2['CO2E_GRP']=pandas.cut(sub2.co2emissions, [2000000, 500000000,5000000000,50000000000,335000000000],labels= ['(0, 0.5]','(0.5, 5]','(5, 50]','(50, 335]'])
+print ('---------------------------------------------------------------------------------------------')
+print ('Crosstabs evaluating which BREAST CANCER 100TH OCURRENCE bins - EMISSION bins')
+print('Number of categories 4, then 6 comparisions needed ')
+print('Bonferroni Adjustment P-value = ',0.05/6 )
+print("Breat Cancer Groups 100th ocurrence x CO2 emissions groups (billions of Tm):")
+ct1=pandas.crosstab(sub2['BC100_GRP'], sub2['CO2E_GRP'])
+print(ct1)
+# column percentages
+colsum=ct1.sum(axis=0)
+colpct=ct1/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+cs1= scipy.stats.chi2_contingency(ct1)
+print (cs1)
+print ('Null Hypothesis REJECTED. p-value =  0.0018128768575961583 < 0.05 ')
+
+##### C-> Q Representation
+seaborn.factorplot(x='CO2E_GRP', y='breastcancerper100th', data=sub2, kind="bar", ci=None)
+plt.xlabel('CO2 emissions groups (billions of Tm)')
+plt.ylabel('Breast cancer per 100th')
+
+##### Post Hoc Test 
+print('---------------- Comparing CO2E_GRP Bin1 with Bin2 (0, 0.5] vs (0.5, 5] ------------------')
+recode1 = {'(0, 0.5]': 0.5, '(0.5, 5]': 5}
+sub2['COMPB1vB2']= sub2['CO2E_GRP'].map(recode1)
+# contingency table of observed counts
+ctB12=pandas.crosstab(sub2['BC100_GRP'], sub2['COMPB1vB2'])
+print (ctB12)
+# column percentages
+colsum=ctB12.sum(axis=0)
+colpct=ctB12/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+csB12= scipy.stats.chi2_contingency(ctB12)
+print (csB12)
+print ('CO2E_GRP Bin1 with Bin2 (0, 0.5] vs (0.5, 5]: Null Hypothesis do not rejected. p-value =  0.016973276132009354 > 0.008333333333333333 ')
+
+##### Comparing CO2E_GRP Bin1 with Bin3 '(0, 0.5]','(5, 50]'
+print('---------------- Comparing CO2E_GRP Bin1 with Bin3 (0, 0.5] vs (5, 50] ------------------')
+recode2 = {'(0, 0.5]': 0.5, '(5, 50]': 50}
+sub2['COMPB1vB3']= sub2['CO2E_GRP'].map(recode2)
+# contingency table of observed counts
+ctB13=pandas.crosstab(sub2['BC100_GRP'], sub2['COMPB1vB3'])
+print (ctB13)
+# column percentages
+colsum=ctB13.sum(axis=0)
+colpct=ctB13/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+csB13= scipy.stats.chi2_contingency(ctB13)
+print (csB13)
+print ('CO2E_GRP Bin1 with Bin3 (0, 0.5] vs (5, 50]: Null Hypothesis REJECTED. p-value =  0.0024019400989158481 < 0.008333333333333333 ')
+
+##### Comparing CO2E_GRP Bin1 with Bin4 '(0, 0.5]','(50, 335]'
+print('---------------- Comparing CO2E_GRP Bin1 with Bin4 (0, 0.5] vs (50, 335] ------------------')
+recode3 = {'(0, 0.5]': 0.5, '(50, 335]': 350}
+sub2['COMPB1vB4']= sub2['CO2E_GRP'].map(recode3)
+# contingency table of observed counts
+ctB14=pandas.crosstab(sub2['BC100_GRP'], sub2['COMPB1vB4'])
+print (ctB14)
+# column percentages
+colsum=ctB14.sum(axis=0)
+colpct=ctB14/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+csB14= scipy.stats.chi2_contingency(ctB14)
+print (csB14)
+print ('CO2E_GRP Bin1 with Bin4 (0, 0.5] vs (50, 335]: Null Hypothesis REJECTED. p-value =  2.15585131248078e-05 < 0.008333333333333333 ')
+
+##### Comparing CO2E_GRP Bin2 with Bin3 '(0.5, 5]','(5, 50]'
+print('---------------- Comparing CO2E_GRP Bin2 with Bin3 (0.5, 5] vs (5, 50] ------------------')
+recode4 = {'(0.5, 5]': 5, '(5, 50]': 50}
+sub2['COMPB2vB3']= sub2['CO2E_GRP'].map(recode4)
+# contingency table of observed counts
+ctB23=pandas.crosstab(sub2['BC100_GRP'], sub2['COMPB2vB3'])
+print (ctB23)
+# column percentages
+colsum=ctB23.sum(axis=0)
+colpct=ctB23/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+csB23= scipy.stats.chi2_contingency(ctB23)
+print (csB23)
+print ('CO2E_GRP Bin2 with Bin3 (0.5, 5] vs (5, 50]: Null Hypothesis do not rejected p-value =  0.8368688285646757 > 0.008333333333333333 ')
+
+##### Comparing CO2E_GRP Bin2 with Bin4 '(0.5, 5]','(50, 335]'
+print('---------------- Comparing CO2E_GRP Bin2 with Bin4 (0.5, 5] vs (50, 335] ------------------')
+recode5 = {'(0.5, 5]': 5, '(50, 335]': 350}
+sub2['COMPB2vB4']= sub2['CO2E_GRP'].map(recode5)
+# contingency table of observed counts
+ctB24=pandas.crosstab(sub2['BC100_GRP'], sub2['COMPB2vB4'])
+print (ctB24)
+# column percentages
+colsum=ctB24.sum(axis=0)
+colpct=ctB24/colsum
+print(colpct)
+ 
+# chi-square
+print ('chi-square value, p value, expected counts')
+csB24= scipy.stats.chi2_contingency(ctB24)
+print (csB24)
+print ('CO2E_GRP Bin2 with Bin4 (0.5, 5] vs (50, 335]: Null Hypothesis do not rejected p-value =  0.12282946946468712 > 0.008333333333333333 ')
+
+##### Comparing CO2E_GRP Bin3 with Bin4 '(5, 50]','(50, 335]'
+print('---------------- Comparing CO2E_GRP Bin3 with Bin4 (5, 50] vs (50, 335] ------------------')
+recode6 = {'(5, 50]': 50, '(50, 335]': 350}
+sub2['COMPB3vB4']= sub2['CO2E_GRP'].map(recode6)
+# contingency table of observed counts
+ctB34=pandas.crosstab(sub2['BC100_GRP'], sub2['COMPB3vB4'])
+print (ctB34)
+# column percentages
+colsum=ctB34.sum(axis=0)
+colpct=ctB34/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+csB34= scipy.stats.chi2_contingency(ctB34)
+print (csB34)
+print ('CO2E_GRP Bin3 with Bin4 (5, 50] vs (50, 335]: Null Hypothesis do not rejected p-value =  0.33937868568570856 > 0.008333333333333333 ')
+
+##### Third Variable of Interest: Urbanrate convert to CATEGORICAL
+##### 4 bins
+print ('---------------------------------------------------------------------------------------------')
+print ('Crosstabs evaluating which BREAST CANCER 100TH OCURRENCE bins - URBAN RATE bins')
+print('Number of categories 4, then 6 comparisions needed ')
+print('Bonferroni Adjustment P-value = ',0.05/6 )
+sub2['UR_GRP']=pandas.cut(sub2.urbanrate, [0, 25, 50, 75, 100])
+#crosstabs evaluating which BREAST CANCER 100TH OCURRENCE groups were put into URBAN RATE GROUPS
+print("Breast Cancer 100th ocurrence x urban rate (billions of Tm):")
+ct2=pandas.crosstab(sub2['BC100_GRP'], sub2['UR_GRP'])
+print(ct2)
+# column percentages
+colsum=ct2.sum(axis=0)
+colpct=ct2/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+cs2= scipy.stats.chi2_contingency(ct2)
+print (cs2)
+print ('Null Hypothesis REJECTED. p-value =   9.1841498124738389e-12 < 0.05 ')
+
+##### C-> Q Representation
+seaborn.factorplot(x='UR_GRP', y='breastcancerper100th', data=sub2, 
+                   kind="bar", ci=None)
+plt.xlabel('Urban Rate')
+plt.ylabel('Breast cancer per 100th')
+
+##### Post Hoc Test 
+print('---------------- Comparing UR_GRP Bin1 with Bin2 (0, 25] vs (25, 50] ------------------')
+recodeb1 = {'(0, 25]': 25, '(25, 50]': 50}
+sub2['COMP25v50']= sub2['UR_GRP'].map(recodeb1)
+# contingency table of observed counts
+ct25v50=pandas.crosstab(sub2['BC100_GRP'], sub2['COMP25v50'])
+print (ct25v50)
+# column percentages
+colsum=ct25v50.sum(axis=0)
+colpct=ct25v50/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+#cs25v50= scipy.stats.chi2_contingency(ct25v50)
+#print (cs25v50)
+print ('REVISAR UR_GRP Bin1 with Bin2 (0, 25] vs (25, 50]: Null Hypothesis do not rejected. p-value =  0.016973276132009354 > 0.008333333333333333 ')
+
+##### Comparing UR_GRP Bin1 with Bin3 (0, 25] vs (50, 75]
+print('---------------- Comparing UR_GRP Bin1 with Bin3 (0, 25] vs (50, 75] ------------------')
+recodeb2 = {'(0, 25]': 25, '(50, 75]': 75}
+sub2['COMP25v75']= sub2['UR_GRP'].map(recodeb2)
+# contingency table of observed counts
+ct25v75=pandas.crosstab(sub2['BC100_GRP'], sub2['COMP25v75'])
+print (ct25v75)
+# column percentages
+colsum=ct25v75.sum(axis=0)
+colpct=ct25v75/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+cs25v75= scipy.stats.chi2_contingency(ct25v75)
+print (cs25v75)
+print ('UR_GRP Bin1 with Bin3 (0, 25] vs (50, 75]: Null Hypothesis do not rejected. p-value =  0.0023447173089374165 > 0.008333333333333333 ')
+##### Comparing UR_GRP Bin1 with Bin4 (0, 25] vs (75, 100]
+print('---------------- Comparing UR_GRP Bin1 with Bin4 (0, 25] vs (75, 100] ------------------')
+recodeb3 = {'(0, 25]': 25, '(75, 100]': 100}
+sub2['COMP25v100']= sub2['UR_GRP'].map(recodeb3)
+# contingency table of observed counts
+ct25v100=pandas.crosstab(sub2['BC100_GRP'], sub2['COMP25v100'])
+print (ct25v100)
+# column percentages
+colsum=ct25v100.sum(axis=0)
+colpct=ct25v100/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+cs25v100= scipy.stats.chi2_contingency(ct25v100)
+print (cs25v100)
+print ('UR_GRP Bin1 with Bin4 (0, 25] vs (75, 100]: Null Hypothesis REJECTED. p-value =  0.00013202457851653322 < 0.008333333333333333 ')
+
+##### Comparing UR_GRP Bin2 with Bin3 (25, 50] vs (50, 75
+print('---------------- Comparing UR_GRP Bin2 with Bin3 (25, 50] vs (50, 75] ------------------')
+recodeb4 = {'(25, 50]': 50, '(50, 75]': 75}
+sub2['COMP50v75']= sub2['UR_GRP'].map(recodeb4)
+# contingency table of observed counts
+ct50v75=pandas.crosstab(sub2['BC100_GRP'], sub2['COMP50v75'])
+print (ct50v75)
+# column percentages
+colsum=ct50v75.sum(axis=0)
+colpct=ct50v75/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+cs50v75= scipy.stats.chi2_contingency(ct50v75)
+print (cs50v75)
+print ('UR_GRP Bin2 with Bin3 (25, 50] vs (50, 75]: Null Hypothesis REJECTED. p-value =  0.00093252290423542555 < 0.008333333333333333 ')
+
+##### Comparing UR_GRP Bin2 with Bin4 (25, 50] vs (75, 100]
+print('---------------- Comparing UR_GRP Bin2 with Bin4 (25, 50] vs (75, 100] ------------------')
+recodeb5 = {'(25, 50]': 50, '(75, 100]': 100}
+sub2['COMP50v100']= sub2['UR_GRP'].map(recodeb5)
+# contingency table of observed counts
+ct50v100=pandas.crosstab(sub2['BC100_GRP'], sub2['COMP50v100'])
+print (ct50v100)
+# column percentages
+colsum=ct50v100.sum(axis=0)
+colpct=ct50v100/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+cs50v100= scipy.stats.chi2_contingency(ct50v100)
+print (cs50v100)
+print ('UR_GRP Bin2 with Bin4 (25, 50] vs (75, 100]: Null Hypothesis REJECTED. p-value =  1.1961174594257035e-06 < 0.008333333333333333 ')
+
+##### Comparing UR_GRP Bin3 with Bin4 (50, 75] vs (75, 100]
+print('---------------- Comparing UR_GRP Bin3 with Bin4 (50, 75] vs (75, 100] ------------------')
+recodeb6 = {'(50, 75]': 75, '(75, 100]': 100}
+sub2['COMP75v100']= sub2['UR_GRP'].map(recodeb6)
+# contingency table of observed counts
+ct75v100=pandas.crosstab(sub2['BC100_GRP'], sub2['COMP75v100'])
+print (ct75v100)
+# column percentages
+colsum=ct75v100.sum(axis=0)
+colpct=ct75v100/colsum
+print(colpct)
+# chi-square
+print ('chi-square value, p value, expected counts')
+cs75v100= scipy.stats.chi2_contingency(ct75v100)
+print (cs75v100)
+print ('UR_GRP Bin2 with Bin4 (50, 75] vs (75, 100]: Null Hypothesis REJECTED. p-value =  5.8785488556826722e-05 < 0.008333333333333333 ')
+
