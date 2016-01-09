@@ -206,18 +206,22 @@ plt.ylabel('Breast cancer per 100th')
 print('---------------- Comparing UR_GRP Bin1 with Bin2 (0, 25] vs (25, 50] ------------------')
 recodeb1 = {'(0, 25]': 25, '(25, 50]': 50}
 sub2['COMP25v50']= sub2['UR_GRP'].map(recodeb1)
+sub2['COMP25v50']=sub2['COMP25v50'].replace(0, 0.0001)
 # contingency table of observed counts
 ct25v50=pandas.crosstab(sub2['BC100_GRP'], sub2['COMP25v50'])
 print (ct25v50)
+#replace 0 value in order to avoid chi-square function error
+ct25v50=ct25v50.replace(0, 0.000001)
+#print (ct25v50)
 # column percentages
 colsum=ct25v50.sum(axis=0)
 colpct=ct25v50/colsum
 print(colpct)
 # chi-square
 print ('chi-square value, p value, expected counts')
-#cs25v50= scipy.stats.chi2_contingency(ct25v50)
-#print (cs25v50)
-print ('REVISAR UR_GRP Bin1 with Bin2 (0, 25] vs (25, 50]: Null Hypothesis do not rejected. p-value =  0.016973276132009354 > 0.008333333333333333 ')
+cs25v50= scipy.stats.chi2_contingency(ct25v50)
+print (cs25v50)
+print ('REVISAR UR_GRP Bin1 with Bin2 (0, 25] vs (25, 50]: Null Hypothesis do not rejected. p-value =  0.55856965940703041 > 0.008333333333333333 ')
 
 ##### Comparing UR_GRP Bin1 with Bin3 (0, 25] vs (50, 75]
 print('---------------- Comparing UR_GRP Bin1 with Bin3 (0, 25] vs (50, 75] ------------------')
@@ -301,5 +305,20 @@ print(colpct)
 print ('chi-square value, p value, expected counts')
 cs75v100= scipy.stats.chi2_contingency(ct75v100)
 print (cs75v100)
-print ('UR_GRP Bin2 with Bin4 (50, 75] vs (75, 100]: Null Hypothesis REJECTED. p-value =  5.8785488556826722e-05 < 0.008333333333333333 ')
+print ('UR_GRP Bin3 with Bin4 (50, 75] vs (75, 100]: Null Hypothesis REJECTED. p-value =  5.8785488556826722e-05 < 0.008333333333333333 ')
 
+#### Summary
+print ('--------------------Summary--------------------')
+print ('CO2E_GRP Bin1 (0, 0.5] vs Bin2 (0.5, 5]: Null Hypothesis do not rejected. p-value =  0.016973276132009354 > 0.008333333333333333 ')
+print ('CO2E_GRP Bin1 (0, 0.5] vs Bin3 (5, 50]: Null Hypothesis REJECTED. p-value =  0.0024019400989158481 < 0.008333333333333333 ')
+print ('CO2E_GRP Bin1 (0, 0.5] vs Bin4 (50, 335]: Null Hypothesis REJECTED. p-value =  2.15585131248078e-05 < 0.008333333333333333 ')
+print ('CO2E_GRP Bin2 (0.5, 5] vs Bin3 (5, 50]: Null Hypothesis do not rejected p-value =  0.8368688285646757 > 0.008333333333333333 ')
+print ('CO2E_GRP Bin2 (0.5, 5] vs Bin4 (50, 335]: Null Hypothesis do not rejected p-value =  0.12282946946468712 > 0.008333333333333333 ')
+print ('CO2E_GRP Bin3 (5, 50] vs Bin4 (50, 335]: Null Hypothesis do not rejected p-value =  0.33937868568570856 > 0.008333333333333333 ')
+
+print ('REVISAR UR_GRP Bin1 with Bin2 (0, 25] vs (25, 50]: Null Hypothesis do not rejected. p-value =  0.016973276132009354 > 0.008333333333333333 ')
+print ('UR_GRP Bin1 with Bin3 (0, 25] vs (50, 75]: Null Hypothesis do not rejected. p-value =  0.0023447173089374165 > 0.008333333333333333 ')
+print ('UR_GRP Bin1 with Bin4 (0, 25] vs (75, 100]: Null Hypothesis REJECTED. p-value =  0.00013202457851653322 < 0.008333333333333333 ')
+print ('UR_GRP Bin2 with Bin3 (25, 50] vs (50, 75]: Null Hypothesis REJECTED. p-value =  0.00093252290423542555 < 0.008333333333333333 ')
+print ('UR_GRP Bin2 with Bin4 (25, 50] vs (75, 100]: Null Hypothesis REJECTED. p-value =  1.1961174594257035e-06 < 0.008333333333333333 ')
+print ('UR_GRP Bin3 with Bin4 (50, 75] vs (75, 100]: Null Hypothesis REJECTED. p-value =  5.8785488556826722e-05 < 0.008333333333333333 ')
