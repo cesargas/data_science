@@ -1,0 +1,88 @@
+# -*- coding: utf-8 -*-
+"""
+Created on 21/1/2016
+@author: César Alonso
+data analysis tools
+Asignment  W4
+
+"""
+import pandas
+import numpy
+import seaborn
+import scipy
+import matplotlib.pyplot as plt
+
+gapminder = pandas.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
+##### lowercase all DataFrame columns names
+gapminder.columns = map(str.lower,gapminder.columns)
+
+##### bug file for display formats to avoid run time errors
+pandas.set_option('display.float_format', lambda x:'%f'%x)
+
+##### Initial data: 213 rows and 16 Columns
+print ('Rows')
+print(len(gapminder)) #number of observations (rows)
+print ('Columns')
+print(len(gapminder.columns)) # number of variables (columns)
+
+##### Eliminate columns we do not need, I have just kept hte country and the variables of interest
+
+gapminder['breastcancerper100th'] = gapminder['breastcancerper100th'].convert_objects(convert_numeric=True)
+gapminder['co2emissions'] = gapminder['co2emissions'].convert_objects(convert_numeric=True)
+gapminder['urbanrate'] = gapminder['urbanrate'].convert_objects(convert_numeric=True)
+
+data_clean = gapminder[['country','breastcancerper100th','co2emissions','urbanrate']].dropna()
+
+d1=sub2['breastcancerper100th'].describe()
+print (d1)
+d2=sub2['co2emissions'].describe()
+print (d2)
+
+def co2emissionsgrp (row):
+   if row['co2emissions'] <= 3178129624.999993:
+      return 1
+   elif row['co2emissions'] > 3178129624.999993 :
+      return 2
+   
+
+data_clean['co2emissionsgrp'] = data_clean.apply (lambda row: urbanrategrp (row),axis=1)
+
+chk1 = data_clean['co2emissionsgrp'].value_counts(sort=False, dropna=False)
+print(chk1)
+##### We kept 168 rows and 4 columns. some nan will be drop 
+print ('Rows')
+print(len(data_clean)) #number of observations (rows)
+print ('Columns')
+print(len(data_clean.columns))
+
+
+sub1=data_clean[(data_clean['co2emissionsgrp']== 1)]
+sub2=data_clean[(data_clean['co2emissionsgrp']== 2)]
+
+
+#########################################################################################
+scat1 = seaborn.regplot(x="urbanrate", y="breastcancerper100th", fit_reg=True, data=sub1)
+plt.xlabel('Urban rate')
+plt.ylabel('Cancer Breast per 100th')
+plt.title('Scatterplot for the Association Between Urban Rate and Cancer Breast per 100th CO2 Emission LOW')
+
+print ('Association Between Urban Rate and Cancer Breast per 100th')
+r_coef1=scipy.stats.pearsonr(sub1['urbanrate'],sub1['breastcancerper100th'])
+print ('Pearson coefficient = ',r_coef1[0])
+print ('Pearson p-value associated = ',r_coef1[1])
+print ('Pearson coefficient squared  = ',r_coef1[0]**2)
+
+
+#########################################################################################
+scat2 = seaborn.regplot(x="urbanrate", y="breastcancerper100th", fit_reg=True, data=sub2)
+plt.xlabel('Urban rate')
+plt.ylabel('Cancer Breast per 100th')
+plt.title('Scatterplot for the Association Between Urban Rate and Cancer Breast per 100th CO2 Emission HIGH')
+
+print ('Association Between Urban Rate and Cancer Breast per 100th')
+r_coef2=scipy.stats.pearsonr(sub2['urbanrate'],sub2['breastcancerper100th'])
+print ('Pearson coefficient = ',r_coef2[0])
+print ('Pearson p-value associated = ',r_coef2[1])
+print ('Pearson coefficient squared  = ',r_coef2[0]**2)
+
+#########################################################################################
