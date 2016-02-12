@@ -26,7 +26,10 @@ data['urbanrate'] = pandas.to_numeric(data['urbanrate'], errors='coerce')
 
 ###############################Centering###################
 co2_mean=data['co2emissions'].mean()
+print(co2_mean)
 data['co2_centered']=data['co2emissions']-co2_mean
+co2_mean2=data['co2_centered'].mean()
+print('Mean: ',co2_mean,' Centered Mean (almost Zero):',co2_mean2)
 
 
 ############################################################################################
