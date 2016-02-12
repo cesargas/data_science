@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Feb 12 17:46:30 2016
+Introduction to Regression W2
+
+@author: cesar
+"""
+import numpy as numpyp
+import pandas as pandas
+import seaborn
+import statsmodels.api
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+
+# bug fix for display formats to avoid run time errors
+pandas.set_option('display.float_format', lambda x:'%.2f'%x)
+
+#call in data set
+data = pandas.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
+#data = pandas.read_csv('gapminder.csv')
+
+# convert variables to numeric format using convert_objects function
+data['breastcancerper100th'] = pandas.to_numeric(data['internetuserate'], errors='coerce')
+data['co2emissions'] = pandas.to_numeric(data['urbanrate'], errors='coerce')
+data['urbanrate'] = pandas.to_numeric(data['urbanrate'], errors='coerce')
+
+###############################Centering###################
+co2_mean=data['co2emissions'].mean()
+data['co2_centered']=data['co2emissions']-co2_mean
+
+
+############################################################################################
+# BASIC LINEAR REGRESSION
+############################################################################################
+
+scat1 = seaborn.regplot(x="co2_centered", y="breastcancerper100th", scatter=True, data=data)
+plt.xlabel('Centered CO2 Emissiion')
+plt.ylabel('Breast Cancer')
+plt.title ('Scatterplot for the Association Between Centered CO2 Emission and Cancer Breast')
+print(scat1)
+print ("OLS regression model for the association between Centered CO2 Emission and Cancer Breast")
+reg1 = smf.ols('breastcancerper100th ~ co2_centered', data=data).fit()
+print (reg1.summary())
