@@ -1,0 +1,74 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Feb 20 18:08:11 2016
+Introduction to Regression W3
+
+@author: cesar
+"""
+
+import numpy
+import pandas
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import seaborn
+
+# bug fix for display formats to avoid run time errors
+pandas.set_option('display.float_format', lambda x:'%.2f'%x)
+
+data = pandas.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
+
+# convert to numeric format
+data['co2emissions'] = pandas.to_numeric(data['co2emissions'], errors='coerce')
+data['urbanrate'] = pandas.to_numeric(data['urbanrate'], errors='coerce')
+
+#sub1 = data[['breastcancerper100th', 'breastcancerper100th', 'urbanrate']].dropna()
+
+#centering
+data['urbanrate_c'] = (data['urbanrate'] - data['urbanrate'].mean())
+data['breastcancerper100th_c'] = (data['breastcancerper100th'] - data['breastcancerper100th'].mean())
+data['co2emissions_c'] = (data['co2emissions'] - data['co2emissions'].mean())
+
+
+
+####################################################################################
+# EVALUATING MODEL FIT breastcancer co2 emission urbanrate
+####################################################################################
+reg1 = smf.ols('breastcancerper100th ~ co2emissions_c', data=data).fit()
+print (reg1.summary())
+
+# quadratic (polynomial) regression analysis
+
+reg2 = smf.ols('breastcancerper100th ~ co2emissions_c + I(co2emissions_c**2)', data=data).fit()
+print (reg2.summary())
+# adding urban rate
+reg3 = smf.ols('breastcancerper100th ~ co2emissions_c + I(co2emissions_c**2) + urbanrate_c', 
+               data=data).fit()
+print (reg3.summary())
+
+#Q-Q plot for normality
+fig4=sm.qqplot(reg3.resid, line='r')
+
+########################################################################################
+
+
+
+####################################################################################
+# EVALUATING MODEL FIT breastcancer urbanrate co2 emission
+####################################################################################
+reg4 = smf.ols('breastcancerper100th ~ urbanrate_c', data=data).fit()
+print (reg4.summary())
+
+# quadratic (polynomial) regression analysis
+
+reg5 = smf.ols('breastcancerper100th ~ urbanrate_c + I(urbanrate_c**2)', data=data).fit()
+print (reg5.summary())
+# adding urban rate
+reg6 = smf.ols('breastcancerper100th ~ urbanrate_c + I(urbanrate_c**2) + co2emissions_c', 
+               data=data).fit()
+print (reg6.summary())
+
+#Q-Q plot for normality
+fig6=sm.qqplot(reg6.resid, line='r')
+
+########################################################################################
