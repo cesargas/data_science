@@ -90,7 +90,7 @@ print (reg6.summary())
 reg7 = smf.ols('breastcancerper100th ~ urbanrate_c + co2emissions_c', data=data_clean).fit()
 print (reg7.summary())
 
-scat3 = seaborn.regplot(x="urbanrate", y="breastcancerper100th", scatter=True, data=data_clean)
+scat3 = seaborn.regplot(x="urbanrate_c", y="breastcancerper100th", scatter=True, data=data_clean)
 plt.xlabel('Urban Rate')
 plt.ylabel('Breast Cancer')
 scat4 = seaborn.regplot(x="urbanrate_c", y="breastcancerper100th", scatter=True, order=2, data=data_clean)
