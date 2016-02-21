@@ -99,7 +99,27 @@ plt.ylabel('Breast Cancer')
 
 #Q-Q plot for normality
 fig6=sm.qqplot(reg6.resid, line='r')
+plt.title('Urban Rate + Urbanrate 2 + CO2 Emissions Model')
 
+fig4=sm.qqplot(reg4.resid, line='r')
+plt.title('Urban Rate Model')
+
+# simple plot of residuals
+stdres=pandas.DataFrame(reg6.resid_pearson)
+plt.plot(stdres, 'o', ls='None')
+l = plt.axhline(y=0, color='r')
+plt.ylabel('Standardized Residual')
+plt.xlabel('Observation Number')
+plt.title('Urban Rate + Urbanrate 2 + CO2 Emissions Model')
+
+# additional regression diagnostic plots
+#fig66 = plt.figure(figsize(12,8))
+fig66 = plt.figure()
+fig66 = sm.graphics.plot_regress_exog(reg6,  "urbanrate_c", fig=fig66)
+
+# leverage plot
+fig666=sm.graphics.influence_plot(reg6, size=8)
+print(fig666)
 ####################################################################################
 # EVALUATING MODEL FIT breastcancer co2 emission urbanrate
 ####################################################################################
@@ -116,4 +136,22 @@ reg3 = smf.ols('breastcancerper100th ~ co2emissions_c + I(co2emissions_c**2) + u
 print (reg3.summary())
 
 #Q-Q plot for normality
-fig4=sm.qqplot(reg3.resid, line='r')
+fig1=sm.qqplot(reg1.resid, line='r')
+plt.title('CO2 Emission Linear Regression Model')
+
+# simple plot of residuals
+stdres=pandas.DataFrame(reg1.resid_pearson)
+plt.plot(stdres, 'o', ls='None')
+l = plt.axhline(y=0, color='r')
+plt.ylabel('Standardized Residual')
+plt.xlabel('Observation Number')
+
+
+# additional regression diagnostic plots
+#fig11 = plt.figure(figsize(12,8))
+fig11 = plt.figure()
+fig11 = sm.graphics.plot_regress_exog(reg3,  "co2emissions_c", fig=fig11)
+
+# leverage plot
+fig111=sm.graphics.influence_plot(reg1, size=8)
+print(fig111)
