@@ -3,72 +3,117 @@
 Created on Sat Feb 20 18:08:11 2016
 Introduction to Regression W3
 
-@author: cesar
+@author: César Alonso
+
 """
-
-import numpy
 import pandas
-import matplotlib.pyplot as plt
-import statsmodels.api as sm
-import statsmodels.formula.api as smf
+import numpy
 import seaborn
+import scipy
+import matplotlib.pyplot as plt
 
-# bug fix for display formats to avoid run time errors
-pandas.set_option('display.float_format', lambda x:'%.2f'%x)
+gapminder = pandas.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
+##### lowercase all DataFrame columns names
+gapminder.columns = map(str.lower,gapminder.columns)
 
-data = pandas.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
+##### bug file for display formats to avoid run time errors
+pandas.set_option('display.float_format', lambda x:'%f'%x)
 
-# convert to numeric format
-data['co2emissions'] = pandas.to_numeric(data['co2emissions'], errors='coerce')
-data['urbanrate'] = pandas.to_numeric(data['urbanrate'], errors='coerce')
+##### Initial data: 213 rows and 16 Columns
+print ('Rows')
+print(len(gapminder)) #number of observations (rows)
+print ('Columns')
+print(len(gapminder.columns)) # number of variables (columns)
 
-#sub1 = data[['breastcancerper100th', 'breastcancerper100th', 'urbanrate']].dropna()
+##### Eliminate columns we do not need, I have just kept hte country and the variables of interest
+
+gapminder['breastcancerper100th'] = gapminder['breastcancerper100th'].convert_objects(convert_numeric=True)
+gapminder['co2emissions'] = gapminder['co2emissions'].convert_objects(convert_numeric=True)
+gapminder['urbanrate'] = gapminder['urbanrate'].convert_objects(convert_numeric=True)
+
+sub1 = gapminder[['country','breastcancerper100th','co2emissions','urbanrate']].dropna()
 
 #centering
-data['urbanrate_c'] = (data['urbanrate'] - data['urbanrate'].mean())
-data['breastcancerper100th_c'] = (data['breastcancerper100th'] - data['breastcancerper100th'].mean())
-data['co2emissions_c'] = (data['co2emissions'] - data['co2emissions'].mean())
+sub1['urbanrate_c'] = (sub1['urbanrate'] - sub1['urbanrate'].mean())
+sub1['co2emissions_c'] = (sub1['co2emissions'] - sub1['co2emissions'].mean())
+print (' urban rate c mean',sub1['urbanrate_c'].mean(), ' urban rate mean ', sub1['urbanrate'].mean())
 
+sub2=sub1.copy()
 
+##### We kept 168 rows and 4 columns. some nan will be drop 
+print ('Rows')
+print(len(sub2)) #number of observations (rows)
+print ('Columns')
+print(len(sub2.columns))
 
+d1=sub2['breastcancerper100th'].describe()
+print (d1)
+
+#########################################################################################
+
+scat1 = seaborn.regplot(x="co2emissions", y="breastcancerper100th", fit_reg=True, data=sub2)
+plt.xlabel('CO2 emissions')
+plt.ylabel('Cancer Breast per 100th')
+plt.title('Scatterplot for the Association Between CO2 Emission and Cancer Breast per 100th')
+
+scat2 = seaborn.regplot(x="urbanrate", y="breastcancerper100th", fit_reg=True, data=sub2)
+plt.xlabel('Urban rate')
+plt.ylabel('Cancer Breast per 100th')
+plt.title('Scatterplot for the Association Between Urban Rate and Cancer Breast per 100th')
+
+data_clean=sub2.dropna()
+
+print ('Association Between CO2 Emission and Cancer Breast per 100th')
+r_coef1=scipy.stats.pearsonr(data_clean['co2emissions'], data_clean['breastcancerper100th'])
+print ('Pearson coefficient = ',r_coef1[0])
+print ('Pearson p-value associated = ',r_coef1[1])
+print ('Pearson coefficient squared = ',r_coef1[0]**2)
+
+print ('Association Between Urban Rate and Cancer Breast per 100th')
+r_coef2=scipy.stats.pearsonr(data_clean['urbanrate'], data_clean['breastcancerper100th'])
+print ('Pearson coefficient = ',r_coef2[0])
+print ('Pearson p-value associated = ',r_coef2[1])
+print ('Pearson coefficient squared  = ',r_coef2[0]**2)
 ####################################################################################
-# EVALUATING MODEL FIT breastcancer co2 emission urbanrate
+# EVALUATING MODEL FIT breastcancer urban
 ####################################################################################
-reg1 = smf.ols('breastcancerper100th ~ co2emissions_c', data=data).fit()
-print (reg1.summary())
-
-# quadratic (polynomial) regression analysis
-
-reg2 = smf.ols('breastcancerper100th ~ co2emissions_c + I(co2emissions_c**2)', data=data).fit()
-print (reg2.summary())
-# adding urban rate
-reg3 = smf.ols('breastcancerper100th ~ co2emissions_c + I(co2emissions_c**2) + urbanrate_c', 
-               data=data).fit()
-print (reg3.summary())
-
-#Q-Q plot for normality
-fig4=sm.qqplot(reg3.resid, line='r')
-
-########################################################################################
-
-
-
-####################################################################################
-# EVALUATING MODEL FIT breastcancer urbanrate co2 emission
-####################################################################################
-reg4 = smf.ols('breastcancerper100th ~ urbanrate_c', data=data).fit()
+reg4 = smf.ols('breastcancerper100th ~ urbanrate_c', data=data_clean).fit()
 print (reg4.summary())
-
 # quadratic (polynomial) regression analysis
 
-reg5 = smf.ols('breastcancerper100th ~ urbanrate_c + I(urbanrate_c**2)', data=data).fit()
+reg5 = smf.ols('breastcancerper100th ~ urbanrate_c + I(urbanrate_c**2)', data=data_clean).fit()
 print (reg5.summary())
 # adding urban rate
-reg6 = smf.ols('breastcancerper100th ~ urbanrate_c + I(urbanrate_c**2) + co2emissions_c', 
-               data=data).fit()
+reg6 = smf.ols('breastcancerper100th ~ urbanrate_c + I(urbanrate_c**2) + co2emissions_c', data=data_clean).fit()
 print (reg6.summary())
+
+reg7 = smf.ols('breastcancerper100th ~ urbanrate_c + co2emissions_c', data=data_clean).fit()
+print (reg7.summary())
+
+scat3 = seaborn.regplot(x="urbanrate", y="breastcancerper100th", scatter=True, data=data_clean)
+plt.xlabel('Urban Rate')
+plt.ylabel('Breast Cancer')
+scat4 = seaborn.regplot(x="urbanrate_c", y="breastcancerper100th", scatter=True, order=2, data=data_clean)
+plt.xlabel('Urban Rate')
+plt.ylabel('Breast Cancer')
 
 #Q-Q plot for normality
 fig6=sm.qqplot(reg6.resid, line='r')
 
-########################################################################################
+####################################################################################
+# EVALUATING MODEL FIT breastcancer co2 emission urbanrate
+####################################################################################
+reg1 = smf.ols('breastcancerper100th ~ co2emissions_c', data=data_clean).fit()
+print (reg1.summary())
+
+# quadratic (polynomial) regression analysis
+
+reg2 = smf.ols('breastcancerper100th ~ co2emissions_c + I(co2emissions_c**2)', data=data_clean).fit()
+print (reg2.summary())
+# adding urban rate
+reg3 = smf.ols('breastcancerper100th ~ co2emissions_c + I(co2emissions_c**2) + urbanrate_c', 
+               data=data_clean).fit()
+print (reg3.summary())
+
+#Q-Q plot for normality
+fig4=sm.qqplot(reg3.resid, line='r')
