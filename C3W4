@@ -1,0 +1,149 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Feb 27 18:08:11 2016
+Introduction to Regression W4
+
+@author: César Alonso
+
+"""
+import pandas
+import numpy
+import seaborn
+import scipy
+import matplotlib.pyplot as plt
+
+gapminder = pandas.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
+##### lowercase all DataFrame columns names
+gapminder.columns = map(str.lower,gapminder.columns)
+
+##### bug file for display formats to avoid run time errors
+pandas.set_option('display.float_format', lambda x:'%f'%x)
+
+##### Initial data: 213 rows and 16 Columns
+print ('Rows')
+print(len(gapminder)) #number of observations (rows)
+print ('Columns')
+print(len(gapminder.columns)) # number of variables (columns)
+
+##### Eliminate columns we do not need, I have just kept hte country and the variables of interest
+
+gapminder['breastcancerper100th'] = gapminder['breastcancerper100th'].convert_objects(convert_numeric=True)
+gapminder['co2emissions'] = gapminder['co2emissions'].convert_objects(convert_numeric=True)
+gapminder['urbanrate'] = gapminder['urbanrate'].convert_objects(convert_numeric=True)
+
+sub1 = gapminder[['country','breastcancerper100th','co2emissions','urbanrate']].dropna()
+
+#centering
+sub1['urbanrate_c'] = (sub1['urbanrate'] - sub1['urbanrate'].mean())
+sub1['co2emissions_c'] = (sub1['co2emissions'] - sub1['co2emissions'].mean())
+print (' urban rate c mean',sub1['urbanrate_c'].mean(), ' urban rate mean ', sub1['urbanrate'].mean())
+
+def Cancerbreast2BIN (x):
+   if x['breastcancerper100th']>sub1['breastcancerper100th'].mean():
+      return 1
+   else: 
+      return 0
+sub1['Cancerbreast2BIN'] = sub1.apply (lambda x: Cancerbreast2BIN (x), axis=1)
+sub1['UR_GRP']=pandas.cut(sub1.urbanrate, [0, 25, 50, 75, 100])
+sub1['CO2E_GRP']=pandas.cut(sub1.co2emissions, [2000000, 500000000,5000000000,50000000000,335000000000],labels= ['(0, 0.5]','(0.5, 5]','(5, 50]','(50, 335]'])
+
+print (pandas.crosstab(sub1['CO2E_GRP'], sub1['Cancerbreast2BIN']))
+
+##### We kept 168 rows and 4 columns. some nan will be drop 
+print ('Rows')
+print(len(sub1)) #number of observations (rows)
+print ('Columns')
+print(len(sub1.columns))
+
+#d1=sub2['breastcancerper100th'].describe()
+#print (d1)
+
+##############################################################################
+# LOGISTIC REGRESSION
+##############################################################################
+# logistic regression with urbanrate_c
+
+lreg1 = smf.logit(formula = 'Cancerbreast2BIN ~ urbanrate_c', data = sub1).fit()
+print (lreg1.summary())
+# odds ratios
+print ("Odds Ratios")
+print (numpy.exp(lreg1.params))
+
+# odd ratios with 95% confidence intervals
+params = lreg1.params
+conf = lreg1.conf_int()
+conf['OR'] = params
+conf.columns = ['Lower CI', 'Upper CI', 'OR']
+print (numpy.exp(conf))
+
+##############################################################################
+
+# logistic regression with co2emissions
+lreg2 = smf.logit(formula = 'Cancerbreast2BIN ~ co2emissions_c', data = sub1).fit()
+print (lreg2.summary())
+# odds ratios
+print ("Odds Ratios")
+print (numpy.exp(lreg2.params))
+
+# odd ratios with 95% confidence intervals
+params = lreg2.params
+conf = lreg2.conf_int()
+conf['OR'] = params
+conf.columns = ['Lower CI', 'Upper CI', 'OR']
+print (numpy.exp(conf))
+
+##############################################################################
+
+# logistic regression with co2emissions + urbanrate
+lreg3 = smf.logit(formula = 'Cancerbreast2BIN ~ co2emissions + urbanrate ', data = sub1).fit()
+print (lreg3.summary())
+# odds ratios
+print ("Odds Ratios")
+print (numpy.exp(lreg3.params))
+
+params = lreg3.params
+conf = lreg3.conf_int()
+conf['OR'] = params
+conf.columns = ['Lower CI', 'Upper CI', 'OR']
+print (numpy.exp(conf))
+
+##############################################################################
+# logistic regression with co2emissions urbanrate sqr urbanrate
+lreg4 = smf.logit(formula = 'Cancerbreast2BIN ~ co2emissions + urbanrate + I(urbanrate**2)', data = sub1).fit()
+print (lreg4.summary())
+# odds ratios
+print ("Odds Ratios")
+print (numpy.exp(lreg3.params))
+
+params = lreg4.params
+conf = lreg4.conf_int()
+conf['OR'] = params
+conf.columns = ['Lower CI', 'Upper CI', 'OR']
+print (numpy.exp(conf))
+
+##############################################################################
+#########Playing with group coding
+lreg5 = smf.logit(formula = 'Cancerbreast2BIN ~ UR_GRP', data = sub1).fit()
+print (lreg1.summary())
+# odds ratios
+print ("Odds Ratios")
+print (numpy.exp(lreg5.params))
+
+params = lreg5.params
+conf = lreg5.conf_int()
+conf['OR'] = params
+conf.columns = ['Lower CI', 'Upper CI', 'OR']
+print (numpy.exp(conf))
+##############################################################################
+
+lreg6 = smf.logit(formula = 'Cancerbreast2BIN ~ CO2E_GRP', data = sub1).fit()
+print (lreg1.summary())
+# odds ratios
+print ("Odds Ratios")
+print (numpy.exp(lreg6.params))
+
+params = lreg6.params
+conf = lreg6.conf_int()
+conf['OR'] = params
+conf.columns = ['Lower CI', 'Upper CI', 'OR']
+print (numpy.exp(conf))
