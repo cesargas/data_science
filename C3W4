@@ -45,14 +45,19 @@ def Cancerbreast2BIN (x):
       return 0
 sub1['Cancerbreast2BIN'] = sub1.apply (lambda x: Cancerbreast2BIN (x), axis=1)
 
-sub1['UR_GRP']=pandas.cut(sub1.urbanrate, [0, 25, 50, 75, 100])
-recode1 = {'(0, 25]': 0,'(25, 50]': 1, '(50, 75]': 2, '(75, 100]': 3}
-sub1['UR_GRP'] = sub1['UR_GRP'].map(recode1)
-print (pandas.crosstab(sub1['UR_GRP'], sub1['Cancerbreast2BIN']))
+def UrbanRate2BIN (x):
+   if x['urbanrate']>sub1['urbanrate'].mean():
+      return 1
+   else: 
+      return 0
+sub1['UrbanRate2BIN'] = sub1.apply (lambda x: UrbanRate2BIN (x), axis=1)
 
-sub1['CO2E_GRP']=pandas.cut(sub1.co2emissions, [2000000, 500000000,5000000000,50000000000,335000000000],labels= [0,1,2,3])
-print(sub1['CO2E_GRP'])
-print (pandas.crosstab(sub1['CO2E_GRP'], sub1['Cancerbreast2BIN']))
+def CO2_2BIN (x):
+   if x['co2emissions']>sub1['co2emissions'].mean():
+      return 1
+   else: 
+      return 0
+sub1['CO2_2BIN'] = sub1.apply (lambda x: CO2_2BIN (x), axis=1)
 
 ##### We kept 168 rows and 4 columns. some nan will be drop 
 print ('Rows')
@@ -69,7 +74,7 @@ print (d2)
 ##############################################################################
 # logistic regression with urbanrate
 
-lreg1 = smf.logit(formula = 'Cancerbreast2BIN ~ urbanrate', data = sub1).fit()
+lreg1 = smf.logit(formula = 'Cancerbreast2BIN ~ UrbanRate2BIN', data = sub1).fit()
 print (lreg1.summary())
 # odds ratios
 print ("Odds Ratios")
@@ -85,7 +90,7 @@ print (numpy.exp(conf))
 ##############################################################################
 
 # logistic regression with co2emissions
-lreg2 = smf.logit(formula = 'Cancerbreast2BIN ~ co2emissions_c', data = sub1).fit()
+lreg2 = smf.logit(formula = 'Cancerbreast2BIN ~ CO2_2BIN', data = sub1).fit()
 print (lreg2.summary())
 # odds ratios
 print ("Odds Ratios")
@@ -101,7 +106,7 @@ print (numpy.exp(conf))
 ##############################################################################
 
 # logistic regression with co2emissions + urbanrate
-lreg3 = smf.logit(formula = 'Cancerbreast2BIN ~ co2emissions + urbanrate ', data = sub1).fit()
+lreg3 = smf.logit(formula = 'Cancerbreast2BIN ~ UrbanRate2BIN + CO2_2BIN ', data = sub1).fit()
 print (lreg3.summary())
 # odds ratios
 print ("Odds Ratios")
@@ -128,28 +133,5 @@ conf.columns = ['Lower CI', 'Upper CI', 'OR']
 print (numpy.exp(conf))
 
 ##############################################################################
-#########Playing with group coding
-lreg5 = smf.logit(formula = 'Cancerbreast2BIN ~ C(UR_GRP)', data = sub1).fit()
-print (lreg1.summary())
-# odds ratios
-print ("Odds Ratios")
-print (numpy.exp(lreg5.params))
 
-params = lreg5.params
-conf = lreg5.conf_int()
-conf['OR'] = params
-conf.columns = ['Lower CI', 'Upper CI', 'OR']
-print (numpy.exp(conf))
-##############################################################################
 
-lreg6 = smf.logit(formula = 'Cancerbreast2BIN ~ C(CO2E_GRP)', data = sub1).fit()
-print (lreg1.summary())
-# odds ratios
-print ("Odds Ratios")
-print (numpy.exp(lreg6.params))
-
-params = lreg6.params
-conf = lreg6.conf_int()
-conf['OR'] = params
-conf.columns = ['Lower CI', 'Upper CI', 'OR']
-print (numpy.exp(conf))
