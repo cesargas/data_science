@@ -119,19 +119,6 @@ conf.columns = ['Lower CI', 'Upper CI', 'OR']
 print (numpy.exp(conf))
 
 ##############################################################################
-# logistic regression with co2emissions urbanrate sqr urbanrate
-lreg4 = smf.logit(formula = 'Cancerbreast2BIN ~ co2emissions + urbanrate + I(urbanrate**2)', data = sub1).fit()
-print (lreg4.summary())
-# odds ratios
-print ("Odds Ratios")
-print (numpy.exp(lreg3.params))
 
-params = lreg4.params
-conf = lreg4.conf_int()
-conf['OR'] = params
-conf.columns = ['Lower CI', 'Upper CI', 'OR']
-print (numpy.exp(conf))
-
-##############################################################################
 
 
