@@ -10,7 +10,7 @@ import pandas
 import numpy
 import seaborn
 import scipy
-import matplotlib.pyplot as plt
+import statsmodels.formula.api as smf 
 
 gapminder = pandas.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
 ##### lowercase all DataFrame columns names
@@ -44,9 +44,14 @@ def Cancerbreast2BIN (x):
    else: 
       return 0
 sub1['Cancerbreast2BIN'] = sub1.apply (lambda x: Cancerbreast2BIN (x), axis=1)
-sub1['UR_GRP']=pandas.cut(sub1.urbanrate, [0, 25, 50, 75, 100])
-sub1['CO2E_GRP']=pandas.cut(sub1.co2emissions, [2000000, 500000000,5000000000,50000000000,335000000000],labels= ['(0, 0.5]','(0.5, 5]','(5, 50]','(50, 335]'])
 
+sub1['UR_GRP']=pandas.cut(sub1.urbanrate, [0, 25, 50, 75, 100])
+recode1 = {'(0, 25]': 0,'(25, 50]': 1, '(50, 75]': 2, '(75, 100]': 3}
+sub1['UR_GRP'] = sub1['UR_GRP'].map(recode1)
+print (pandas.crosstab(sub1['UR_GRP'], sub1['Cancerbreast2BIN']))
+
+sub1['CO2E_GRP']=pandas.cut(sub1.co2emissions, [2000000, 500000000,5000000000,50000000000,335000000000],labels= [0,1,2,3])
+print(sub1['CO2E_GRP'])
 print (pandas.crosstab(sub1['CO2E_GRP'], sub1['Cancerbreast2BIN']))
 
 ##### We kept 168 rows and 4 columns. some nan will be drop 
@@ -57,13 +62,14 @@ print(len(sub1.columns))
 
 #d1=sub2['breastcancerper100th'].describe()
 #print (d1)
-
+d2=sub1['urbanrate'].describe()
+print (d2)
 ##############################################################################
 # LOGISTIC REGRESSION
 ##############################################################################
-# logistic regression with urbanrate_c
+# logistic regression with urbanrate
 
-lreg1 = smf.logit(formula = 'Cancerbreast2BIN ~ urbanrate_c', data = sub1).fit()
+lreg1 = smf.logit(formula = 'Cancerbreast2BIN ~ urbanrate', data = sub1).fit()
 print (lreg1.summary())
 # odds ratios
 print ("Odds Ratios")
@@ -123,7 +129,7 @@ print (numpy.exp(conf))
 
 ##############################################################################
 #########Playing with group coding
-lreg5 = smf.logit(formula = 'Cancerbreast2BIN ~ UR_GRP', data = sub1).fit()
+lreg5 = smf.logit(formula = 'Cancerbreast2BIN ~ C(UR_GRP)', data = sub1).fit()
 print (lreg1.summary())
 # odds ratios
 print ("Odds Ratios")
@@ -136,7 +142,7 @@ conf.columns = ['Lower CI', 'Upper CI', 'OR']
 print (numpy.exp(conf))
 ##############################################################################
 
-lreg6 = smf.logit(formula = 'Cancerbreast2BIN ~ CO2E_GRP', data = sub1).fit()
+lreg6 = smf.logit(formula = 'Cancerbreast2BIN ~ C(CO2E_GRP)', data = sub1).fit()
 print (lreg1.summary())
 # odds ratios
 print ("Odds Ratios")
