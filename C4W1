@@ -1,0 +1,89 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat March 8 18:08:11 2016
+Machine Learning W1
+
+@author: César Alonso
+"""
+
+# -*- coding: utf-8 -*-
+
+from pandas import Series, DataFrame
+import pandas as pd
+import numpy as np
+import os
+import matplotlib.pylab as plt
+from sklearn.cross_validation import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report
+import sklearn.metrics
+
+os.chdir("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Machine Learning")
+
+"""
+Data Engineering and Analysis
+"""
+#Load the dataset
+gapminder = pd.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
+
+gapminder['breastcancerper100th'] = gapminder['breastcancerper100th'].convert_objects(convert_numeric=True)
+gapminder['co2emissions'] = gapminder['co2emissions'].convert_objects(convert_numeric=True)
+gapminder['urbanrate'] = gapminder['urbanrate'].convert_objects(convert_numeric=True)
+
+data_clean = gapminder[['country','breastcancerper100th','co2emissions','urbanrate']].dropna()
+
+def Cancerbreast2BIN (x):
+   if x['breastcancerper100th']>data_clean['breastcancerper100th'].mean():
+      return 1
+   else: 
+      return 0
+data_clean['Cancerbreast2BIN'] = data_clean.apply (lambda x: Cancerbreast2BIN (x), axis=1)
+     
+data_clean.dtypes
+data_clean.describe()
+
+
+"""
+Modeling and Prediction
+"""
+#Split into training and testing sets
+
+predictors = data_clean[['co2emissions','urbanrate']]
+
+targets = data_clean.Cancerbreast2BIN
+
+pred_train, pred_test, tar_train, tar_test  =   train_test_split(predictors, targets, test_size=.4)
+
+pred_train.shape
+pred_test.shape
+tar_train.shape
+tar_test.shape
+
+#Build model on training data
+classifier=DecisionTreeClassifier()
+classifier=classifier.fit(pred_train,tar_train)
+
+predictions=classifier.predict(pred_test)
+
+sklearn.metrics.confusion_matrix(tar_test,predictions)
+sklearn.metrics.accuracy_score(tar_test, predictions)
+feature_names=['co2emissions','urbanrate']
+#Displaying the decision tree
+from sklearn import tree
+#from StringIO import StringIO
+from io import StringIO
+#from StringIO import StringIO 
+from IPython.display import Image
+out = StringIO()
+
+tree.export_graphviz(classifier, out_file=out,feature_names=feature_names)
+import pydotplus
+graph=pydotplus.graph_from_dot_data(out.getvalue())
+with open('picture_out1.png', 'wb') as f:
+    f.write(graph.create_png())
+# Image(graph.create_png())
+import pydot 
+graph.write_pdf("picture_out1.pdf") 
+
+
+
