@@ -63,7 +63,7 @@ predictors['internetuserate']=preprocessing.scale(predictors['internetuserate'].
 predictors['relectricperperson']=preprocessing.scale(predictors['relectricperperson'].astype('float64'))
 
 # split data into train and test sets
-pred_train, pred_test, tar_train, tar_test  =   train_test_split(predictors, targets, test_size=.4,random_state=123)
+pred_train, pred_test, tar_train, tar_test  =   train_test_split(predictors, targets, test_size=.3,random_state=123)
 
 pred_train.shape
 pred_test.shape
