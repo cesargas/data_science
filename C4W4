@@ -1,0 +1,200 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Mar 30 19:18:30 2016
+
+C4W4 K-mean Clustering
+
+@author: cesar
+"""
+from pandas import Series, DataFrame
+import pandas as pd
+import numpy as np
+import matplotlib.pylab as plt
+from sklearn.cross_validation import train_test_split
+from sklearn import preprocessing
+from sklearn.cluster import KMeans
+
+"""
+Data Management
+"""
+#Load the dataset
+gapminder = pd.read_csv("/home/cesar/Documentos/cesar/Profesional/Formacion/Wesleyan University/Data Analysis Tools/gapminder.csv", low_memory=False)
+#data = pd.read_csv("tree_addhealth.csv")
+
+#upper-case all DataFrame column names
+#gapminder.columns = map(str.upper, gapminder.columns)
+gapminder['breastcancerper100th'] = gapminder['breastcancerper100th'].convert_objects(convert_numeric=True)
+gapminder['co2emissions'] = gapminder['co2emissions'].convert_objects(convert_numeric=True)
+gapminder['urbanrate'] = gapminder['urbanrate'].convert_objects(convert_numeric=True)
+gapminder['incomeperperson'] = gapminder['incomeperperson'].convert_objects(convert_numeric=True)
+gapminder['alcconsumption'] = gapminder['alcconsumption'].convert_objects(convert_numeric=True)
+gapminder['femaleemployrate'] = gapminder['femaleemployrate'].convert_objects(convert_numeric=True)
+gapminder['internetuserate'] = gapminder['internetuserate'].convert_objects(convert_numeric=True)
+gapminder['relectricperperson'] = gapminder['relectricperperson'].convert_objects(convert_numeric=True)
+# Data Management
+
+data_clean = gapminder.dropna()
+
+# subset clustering variables
+cluster = data_clean[['co2emissions','urbanrate','incomeperperson','alcconsumption','femaleemployrate','internetuserate','relectricperperson']].dropna()
+
+cluster.describe()
+
+# standardize clustering variables to have mean=0 and sd=1
+clustervar=cluster.copy()
+clustervar['co2emissions']=preprocessing.scale(clustervar['co2emissions'].astype('float64'))
+clustervar['urbanrate']=preprocessing.scale(clustervar['urbanrate'].astype('float64'))
+clustervar['incomeperperson']=preprocessing.scale(clustervar['incomeperperson'].astype('float64'))
+clustervar['alcconsumption']=preprocessing.scale(clustervar['alcconsumption'].astype('float64'))
+clustervar['femaleemployrate']=preprocessing.scale(clustervar['femaleemployrate'].astype('float64'))
+clustervar['internetuserate']=preprocessing.scale(clustervar['internetuserate'].astype('float64'))
+clustervar['relectricperperson']=preprocessing.scale(clustervar['relectricperperson'].astype('float64'))
+clustervar.describe()
+# split data into train and test sets
+clus_train, clus_test = train_test_split(clustervar, test_size=.3, random_state=123)
+
+# k-means cluster analysis for 1-9 clusters                                                           
+from scipy.spatial.distance import cdist
+clusters=range(1,10)
+meandist=[]
+
+for k in clusters:
+    model=KMeans(n_clusters=k)
+    model.fit(clus_train)
+    clusassign=model.predict(clus_train)
+    meandist.append(sum(np.min(cdist(clus_train, model.cluster_centers_, 'euclidean'), axis=1)) 
+    / clus_train.shape[0])
+
+"""
+Plot average distance from observations from the cluster centroid
+to use the Elbow Method to identify number of clusters to choose
+"""
+
+plt.plot(clusters, meandist)
+plt.xlabel('Number of clusters')
+plt.ylabel('Average distance')
+plt.title('Selecting k with the Elbow Method')
+
+# Interpret 3 cluster solution
+model3=KMeans(n_clusters=3)
+model3.fit(clus_train)
+clusassign=model3.predict(clus_train)
+# plot clusters
+
+from sklearn.decomposition import PCA
+pca_2 = PCA(2)
+plot_columns = pca_2.fit_transform(clus_train)
+plt.scatter(x=plot_columns[:,0], y=plot_columns[:,1], c=model3.labels_,)
+plt.xlabel('Canonical variable 1')
+plt.ylabel('Canonical variable 2')
+plt.title('Scatterplot of Canonical Variables for 3 Clusters')
+plt.show()
+
+"""
+BEGIN multiple steps to merge cluster assignment with clustering variables to examine
+cluster variable means by cluster
+"""
+# create a unique identifier variable from the index for the 
+# cluster training data to merge with the cluster assignment variable
+clus_train.reset_index(level=0, inplace=True)
+# create a list that has the new index variable
+cluslist=list(clus_train['index'])
+# create a list of cluster assignments
+labels=list(model3.labels_)
+# combine index variable list with cluster assignment list into a dictionary
+newlist=dict(zip(cluslist, labels))
+newlist
+# convert newlist dictionary to a dataframe
+newclus=DataFrame.from_dict(newlist, orient='index')
+newclus
+# rename the cluster assignment column
+newclus.columns = ['cluster']
+
+# now do the same for the cluster assignment variable
+# create a unique identifier variable from the index for the 
+# cluster assignment dataframe 
+# to merge with cluster training data
+newclus.reset_index(level=0, inplace=True)
+# merge the cluster assignment dataframe with the cluster training variable dataframe
+# by the index variable
+merged_train=pd.merge(clus_train, newclus, on='index')
+merged_train.head(n=100)
+# cluster frequencies
+merged_train.cluster.value_counts()
+
+"""
+END multiple steps to merge cluster assignment with clustering variables to examine
+cluster variable means by cluster
+"""
+
+# FINALLY calculate clustering variable means by cluster
+clustergrp = merged_train.groupby('cluster').mean()
+print ("Clustering variable means by cluster")
+print(clustergrp)
+
+
+# validate clusters in training data by examining cluster differences in breastcancerper100th using ANOVA
+# first have to merge breastcancerper100th with clustering variables and cluster assignment data 
+cbr_data=data_clean['breastcancerper100th']
+# split breastcancerper100th data into train and test sets
+cbr_train, cbr_test = train_test_split(cbr_data, test_size=.3, random_state=123)
+cbr_train1=pd.DataFrame(cbr_train)
+cbr_train1.reset_index(level=0, inplace=True)
+merged_train_all=pd.merge(cbr_train1, merged_train, on='index')
+sub1 = merged_train_all[['breastcancerper100th', 'cluster']].dropna()
+
+import statsmodels.formula.api as smf
+import statsmodels.stats.multicomp as multi 
+
+gpamod = smf.ols(formula='breastcancerper100th ~ C(cluster)', data=sub1).fit()
+print (gpamod.summary())
+
+print ('means for breastcancerper100th by cluster')
+m1= sub1.groupby('cluster').mean()
+print (m1)
+
+print ('standard deviations for breastcancerper100th by cluster')
+m2= sub1.groupby('cluster').std()
+print (m2)
+
+mc1 = multi.MultiComparison(sub1['breastcancerper100th'], sub1['cluster'])
+res1 = mc1.tukeyhsd()
+print(res1.summary())
+
+
+
+"""
+VALIDATION
+BEGIN multiple steps to merge cluster assignment with clustering variables to examine
+cluster variable means by cluster in test data set
+"""
+# create a variable out of the index for the cluster training dataframe to merge on
+clus_test.reset_index(level=0, inplace=True)
+# create a list that has the new index variable
+cluslistval=list(clus_test['index'])
+# create a list of cluster assignments
+labelsval=list(clusassign)
+# combine index variable list with labels list into a dictionary
+newlistval=dict(zip(cluslistval, clusassign))
+newlistval
+# convert newlist dictionary to a dataframe
+newclusval=DataFrame.from_dict(newlistval, orient='index')
+newclusval
+# rename the cluster assignment column
+newclusval.columns = ['cluster']
+# create a variable out of the index for the cluster assignment dataframe to merge on
+newclusval.reset_index(level=0, inplace=True)
+# merge the cluster assignment dataframe with the cluster training variable dataframe
+# by the index variable
+merged_test=pd.merge(clus_test, newclusval, on='index')
+# cluster frequencies
+merged_test.cluster.value_counts()
+"""
+END multiple steps to merge cluster assignment with clustering variables to examine
+cluster variable means by cluster
+"""
+
+# calculate test data clustering variable means by cluster
+clustergrpval = merged_test.groupby('cluster').mean()
+print ("Test data clustering variable means by cluster")
+print(clustergrpval)
