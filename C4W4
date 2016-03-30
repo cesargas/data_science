@@ -75,8 +75,8 @@ plt.xlabel('Number of clusters')
 plt.ylabel('Average distance')
 plt.title('Selecting k with the Elbow Method')
 
-# Interpret 3 cluster solution
-model3=KMeans(n_clusters=3)
+# Interpret 4 cluster solution
+model3=KMeans(n_clusters=4)
 model3.fit(clus_train)
 clusassign=model3.predict(clus_train)
 # plot clusters
@@ -87,7 +87,7 @@ plot_columns = pca_2.fit_transform(clus_train)
 plt.scatter(x=plot_columns[:,0], y=plot_columns[:,1], c=model3.labels_,)
 plt.xlabel('Canonical variable 1')
 plt.ylabel('Canonical variable 2')
-plt.title('Scatterplot of Canonical Variables for 3 Clusters')
+plt.title('Scatterplot of Canonical Variables for 4 Clusters')
 plt.show()
 
 """
